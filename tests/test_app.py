@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.storage import storage
+from app.models import Event
 
 
 @pytest.fixture(autouse=True)
@@ -102,6 +103,78 @@ def test_get_user_events_returns_404_for_unknown_user(client):
     response = client.get("/users/9999/events")
     assert response.status_code == 404
     assert response.json()["detail"] == "User not found"
+
+
+def test_delete_existing_user(client):
+    user_response = client.post(
+        "/users",
+        json={"email": "bob@example.com", "name": "Bob"},
+    )
+    user_id = user_response.json()["id"]
+    delete_response = client.delete(f"/users/{user_id}")
+    assert delete_response.status_code == 204
+
+
+def test_delete_nonexistent_user_returns_404(client):
+    response = client.delete("/users/9999")
+    assert response.status_code == 404
+
+
+def test_delete_user_twice_returns_404(client):
+    user_response = client.post(
+        "/users",
+        json={"email": "bob@example.com", "name": "Bob"},
+    )
+    user_id = user_response.json()["id"]
+
+    first_delete = client.delete(f"/users/{user_id}")
+    second_delete = client.delete(f"/users/{user_id}")
+
+    assert first_delete.status_code == 204
+    assert second_delete.status_code == 404
+
+
+def test_soft_delete_user_with_error_does_rollback(client, monkeypatch):
+    user_response = client.post(
+        "/users",
+        json={"email": "bob@example.com", "name": "Bob"},
+    )
+    assert user_response.status_code == 201
+    user_id = user_response.json()["id"]
+
+    for _ in range(3):
+        event_response = client.post(
+            "/events", json={"user_id": user_id, "event_type": "login", "metadata": {}}
+        )
+        assert event_response.status_code == 201
+
+    set_count = 0
+    original_setattr = Event.__setattr__
+
+    def flaky_setattr(self, name, value):
+        nonlocal set_count
+        if name == "deleted_at" and value is not None:
+            set_count += 1
+            if set_count >= 2:
+                raise RuntimeError("Simulated failure mid-deletion")
+        original_setattr(self, name, value)
+
+    monkeypatch.setattr(Event, "__setattr__", flaky_setattr)
+    try:
+        client.delete(f"/users/{user_id}")
+    except Exception as e:
+        print(f"\n\nException caught: {e}")
+    monkeypatch.undo()
+
+    get_response = client.get(f"/users/{user_id}")
+    assert get_response.status_code == 200
+    assert get_response.json()["deleted_at"] is None
+
+    events_response = client.get(f"/users/{user_id}/events")
+    assert events_response.status_code == 200
+    events = events_response.json()
+    assert len(events) == 3
+    assert all(event["deleted_at"] is None for event in events)
 
 
 def test_create_event_returns_201(client, user):

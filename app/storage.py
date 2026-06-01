@@ -42,6 +42,23 @@ class Storage:
             if event.user_id == user_id and event.deleted_at is None
         ]
 
+    def atomic_soft_delete_user(self, user_id: int) -> Optional[User]:
+        user = self._users.get(user_id)
+        if user is None or user.deleted_at is not None:
+            return None
+        users_snapshot = deepcopy(self._users)
+        events_snapshot = deepcopy(self._events)
+        try:
+            now = datetime.now(timezone.utc)
+            for event in self._events.values():
+                if event.user_id == user_id and event.deleted_at is None:
+                    event.deleted_at = now
+            user.deleted_at = now
+            return user
+        except Exception:
+            self._users = users_snapshot
+            self._events = events_snapshot
+            raise
 
     def create_event(self, data: EventCreate) -> Event:
         event = Event(

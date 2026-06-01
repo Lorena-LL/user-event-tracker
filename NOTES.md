@@ -33,9 +33,23 @@
 
 ## 2. Endpoint-ul nou
 
-- **Decizii de design:** (ce-ai considerat? ce ai ales și de ce?)
+- **Decizii de design:** 
+    1. delete_user: endpoint pentru soft delete user pentru ca mi se parea interesant sa vad cum pot sa mimez atomicitatea daca operatia de stergere se propaga mai departe la fiecare eveniment al userului respectiv
+    2. get_user_events: endpoint pentru obtinerea tuturor evenimentelor non deleted pe care le are un user - nu la fel de interesant precum primul, dar l-am creat ca sa pot testa mai bine endpointul pentru soft delete user
 - **Cazuri edge pe care le-ai acoperit:**
-- **Teste adăugate:** (ce verifică fiecare)
+    1. delete_user: 
+        - o eroare apare dupa ce unele evenimente sunt sterse, dar nu toate si atunci vreau sa nu se persiste stergerea doar pe o parte din obiectele implicate
+- **Teste adăugate:** 
+    1. delete_user:
+        - userul are evenimente si stergerea reuseste cu succes
+        - userul nu exista
+        - userul este sters de 2 ori
+        - testarea funstiei de rollback
+    2. get_user_events:
+        - userul are evenimente si stergerea reuseste cu succes
+        - userul nu are evenimente
+        - userul are numai evenimente sterse
+        - userul nu exista
 
 ---
 
@@ -43,18 +57,23 @@
 
 Fii cinstit. Nu pierzi puncte dacă spui adevărul, dimpotrivă.
 
-- **Ce ai folosit:** (ChatGPT / Cursor / Copilot / altele)
-- **Prompturi reprezentative folosite:** (scrie prompturile pe care le consideri relevante + context scurt: la ce te-au ajutat)
-- **Unde te-a ajutat cel mai mult:**
-- **Unde te-a încurcat sau ți-a dat un răspuns greșit:** (foarte interesant pentru noi!)
-- **Cum ai verificat ce-a generat:**
-- **Anexă opțională — export chat:** (dacă vrei, poți adăuga un export de chat relevant)
+- **Ce ai folosit:** ChatGPT, Claude
+- **Prompturi reprezentative folosite:** dupa cum se poate observa si in conversatiile pe care le-am distribuit, promturile mele difera. In prima parte cand lucram la bug-uri promturile contineam maxim 1-2 propozitii si se refereau la particularitati de sintaxa python. Cand am lucrat la endpointuri promturile contineau si bucati de cod reprezentative, erori si pareri proprii
+- **Unde te-a ajutat cel mai mult:** Cel mai mult m-a ajutat sa realizez testul "test_soft_delete_user_with_error_does_rollback" pentru ca foloseste monkeypatch, ceea ce eu nu am mai vazut sau folosit pana acum. M-a ajutat sa inteleg cum functioneaza si mi-a oferit mai multe variante de patch. M-am ajutat destul de mult de AI pentru construirea testelor pentru a putea rezolva mai repede taskul 
+- **Unde te-a încurcat sau ți-a dat un răspuns greșit:** Motivul pentru care am 3 linkuri de conversatie este pentru ca la un moment dat chatGPT a incetat sa mai raspunda relevant, probabil a schimbat modelul pentru ca mai purtasem conversatii cu el pentru alte proiecte inainte. In a doua conversatie se poate vedea ca Claude a oferit destul de multe versiuni de cod pentru patchul din "test_soft_delete_user_with_error_does_rollback". Destul de multe variante nu functionau sau nu aveau sens
+- **Cum ai verificat ce-a generat:** Am citit codul si explicatiile generate de fiecare data. Am testat sa vad daca ruleaza solutiile si la final cand toate testele treceau, am mai citit odata codul sa ma asigur ca e cu adevarat ok ce se intampla cand se apeleaza functiile
+- **Anexă opțională — export chat:** 
+    1. https://chatgpt.com/share/6a1d664d-e720-83eb-8feb-b2708312875d
+    2. https://claude.ai/share/886d5ab5-a383-49b2-a4af-6ed0adc388b6
+    3. https://claude.ai/share/fb9060fb-a6b5-40be-9236-793c864bc449
 
 ---
 
 ## 4. Ce-ai face cu mai mult timp
 
-(Lista scurtă, 3-5 puncte. Arată-ne că ai văzut limitele actuale.)
+- as adauga validatoare pentru user input ca sa nu pot introduce stringri goale sau date care exista deja in baza de date
+- as adauga mecanisme care sa previna accesul simultan la datele din dictionar pentru operatiile care creaza modificari. Spre exemplu functia mea de atomic_soft_delete_user si functia soft_delete_event ar putea intra in race condition pentru modificarea valorii deleted_at al unui eveniment
+- endpointurile pentru get /users/{user_id} si get /event/{event_id} returneaza si obiecte soft deleted, si ar trebui schimbat comportamentul (daca asta se doreste de la endpointurile respective)
 
 ---
 

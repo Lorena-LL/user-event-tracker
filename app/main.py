@@ -37,6 +37,14 @@ def get_user_events(user_id: int) -> list[Event]:
     return events
 
 
+@app.delete("/users/{user_id}", status_code=204)
+def delete_user(user_id: int) -> None:
+    user = storage.atomic_soft_delete_user(user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return None
+
+
 @app.post("/events", response_model=Event, status_code=201)
 def create_event(data: EventCreate) -> Event:
     user = storage.get_user(data.user_id)
