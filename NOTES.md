@@ -1,19 +1,13 @@
-# NOTES — [Numele tău]
-
-Copiază acest fișier ca `NOTES.md` și completează-l.
-
-Vrem să fie scurt — maxim 1 pagină. Mai mult contează claritatea decât lungimea.
+# NOTES — Lupulescu Lorena
 
 ---
 
 ## 1. Bug-urile găsite
 
-Pentru fiecare bug, scrie 2-3 propoziții:
-
 ### Bug #1
-- **Unde era:** (fișier + linie aprox)
-- **Cum l-am găsit:** (test care pica? citire de cod? logs?)
-- **Cum l-am fixat:**
+- **Unde era:** main.py - linia 32
+- **Cum l-am găsit:** testul "test_create_event_returns_201" pica, asa ca m-am uitat in cod si am vazut ca metoda POST pentru create_user specifica si status_code, dar metoda POST pentru create_event nu specifica
+- **Cum l-am fixat:** am adaugat "status_code=201" in "@app.post("/events", response_model=Event, status_code=201)" in main.py
 
 ### Bug #2
 - **Unde era:**
