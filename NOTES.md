@@ -24,6 +24,11 @@
 - **Cum l-am găsit:** mi se specifica ca list_events trebuie sa returneze evenimentele in ordinea inserarii, dar nu se face nicio ordonare explicita. Daca datele ar fi luate din baza de date, evenimentele nu ar mai fi returnate in ordine
 - **Cum l-am fixat:** am adaugat o sortare explicita pe baza momentului de creare in loc sa ma bazez pe ordinea dictionarului inainte de return: "active_events.sort(key=lambda e: e.created_at, reverse=True)" si am sters mesajul pentru ca acum codul respecta specificatia
 
+### Bug #5
+- **Unde era:** storage.py - linia 59
+- **Cum l-am găsit:** testul "test_delete_same_event_twice_changes_response" pica si observ ca metoda soft_delete_event returneaza None numai daca evenimentul nu exista, iar numai acest caz returneaza in main 404, ceea ce nu corespunde cu asteptarile testului 
+- **Cum l-am fixat:** metoda soft_delete_event trenuie sa verifice daca evenimentul nu este deja sters: "if event is None or event.deleted_at is not None: ..." 
+
 ---
 
 ## 2. Endpoint-ul nou

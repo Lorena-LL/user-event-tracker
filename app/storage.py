@@ -57,7 +57,7 @@ class Storage:
 
     def soft_delete_event(self, event_id: int) -> Optional[Event]:
         event = self._events.get(event_id)
-        if event is None:
+        if event is None or event.deleted_at is not None:
             return None
         event.deleted_at = datetime.now(timezone.utc)
         return event
