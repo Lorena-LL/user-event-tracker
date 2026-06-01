@@ -10,9 +10,9 @@
 - **Cum l-am fixat:** am adaugat "status_code=201" in "@app.post("/events", response_model=Event, status_code=201)" in main.py
 
 ### Bug #2
-- **Unde era:**
-- **Cum l-am găsit:**
-- **Cum l-am fixat:**
+- **Unde era:** storage.py - linia 51
+- **Cum l-am găsit:** testul "test_list_events_includes_created_items" pica, deci trebuie sa fie un bug fie in metoda care adauga un eveniment, fie in metoda de get -> in list_events se returneaza elementele decalate cu un elemet ceea ce e gresit
+- **Cum l-am fixat:** am inlocuit linia 51 cu "return all_events[offset : offset + limit]" pentru a returna atatea evenimente cate specifica linits, incepand de la indexul offset din lista tuturor evenimentelor
 
 ### Bug #3
 - **Unde era:**
