@@ -15,9 +15,9 @@
 - **Cum l-am fixat:** am inlocuit linia 51 cu "return all_events[offset : offset + limit]" pentru a returna atatea evenimente cate specifica linits, incepand de la indexul offset din lista tuturor evenimentelor
 
 ### Bug #3
-- **Unde era:**
-- **Cum l-am găsit:**
-- **Cum l-am fixat:**
+- **Unde era:** storage.py - linia 50
+- **Cum l-am găsit:** testul "test_list_events_hides_soft_deleted_items" pica, si ma gandesc ca una dintre: stergerea "soft delete" sau metoda get pentru events trebuie sa aiba bug. Metoda soft_delete_event functioneaza, dar list_events nu tine cont de valoarea deleted_at al unui evnt cand returneaza lista. 
+- **Cum l-am fixat:** am facut o filtrare pentru a returna numai evenimentele active
 
 ---
 
