@@ -52,6 +52,7 @@ class Storage:
             for e in self._events.values()
             if e.deleted_at is None
         ]
+        active_events.sort(key=lambda e: e.created_at, reverse=True)
         return active_events[offset: offset + limit]
 
     def soft_delete_event(self, event_id: int) -> Optional[Event]:

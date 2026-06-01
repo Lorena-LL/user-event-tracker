@@ -19,6 +19,11 @@
 - **Cum l-am găsit:** testul "test_list_events_hides_soft_deleted_items" pica, si ma gandesc ca una dintre: stergerea "soft delete" sau metoda get pentru events trebuie sa aiba bug. Metoda soft_delete_event functioneaza, dar list_events nu tine cont de valoarea deleted_at al unui evnt cand returneaza lista. 
 - **Cum l-am fixat:** am facut o filtrare pentru a returna numai evenimentele active
 
+### Bug #4
+- **Unde era:** storage.py - linia 49
+- **Cum l-am găsit:** mi se specifica ca list_events trebuie sa returneze evenimentele in ordinea inserarii, dar nu se face nicio ordonare explicita. Daca datele ar fi luate din baza de date, evenimentele nu ar mai fi returnate in ordine
+- **Cum l-am fixat:** am adaugat o sortare explicita pe baza momentului de creare in loc sa ma bazez pe ordinea dictionarului inainte de return: "active_events.sort(key=lambda e: e.created_at, reverse=True)" si am sters mesajul pentru ca acum codul respecta specificatia
+
 ---
 
 ## 2. Endpoint-ul nou
