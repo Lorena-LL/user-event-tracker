@@ -60,6 +60,50 @@ def test_get_user_missing_returns_404(client):
     assert response.status_code == 404
 
 
+def test_get_user_events_returns_events(client, user):
+    for _ in range(3):
+        response = client.post(
+            "/events",
+            json={"user_id": user["id"], "event_type": "login", "metadata": {}},
+        )
+        assert response.status_code == 201
+
+    response = client.get(f"/users/{user['id']}/events")
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 3
+    assert all(e["user_id"] == user["id"] for e in body)
+    assert all(e["deleted_at"] is None for e in body)
+
+
+def test_get_user_events_returns_empty_list_when_no_events(client, user):
+    response = client.get(f"/users/{user['id']}/events")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_get_user_events_excludes_soft_deleted_events(client, user):
+    for _ in range(3):
+        response = client.post(
+            "/events",
+            json={"user_id": user["id"], "event_type": "login", "metadata": {}},
+        )
+        assert response.status_code == 201
+        event_id = response.json()["id"]
+        delete_response = client.delete(f"/events/{event_id}")
+        assert delete_response.status_code == 204
+
+    response = client.get(f"/users/{user['id']}/events")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_get_user_events_returns_404_for_unknown_user(client):
+    response = client.get("/users/9999/events")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "User not found"
+
+
 def test_create_event_returns_201(client, user):
     response = client.post(
         "/events",

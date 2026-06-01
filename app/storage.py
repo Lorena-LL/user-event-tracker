@@ -5,6 +5,7 @@ This is intentionally simple - production code would use a real database.
 
 from datetime import datetime, timezone
 from typing import Optional
+from copy import deepcopy
 
 from app.models import Event, EventCreate, User, UserCreate
 
@@ -31,6 +32,17 @@ class Storage:
     def get_user(self, user_id: int) -> Optional[User]:
         return self._users.get(user_id)
 
+    def get_events_by_user(self, user_id: int) -> Optional[list[Event]]:
+        user = self._users.get(user_id)
+        if user is None or user.deleted_at is not None:
+            return None
+        return [
+            event
+            for event in self._events.values()
+            if event.user_id == user_id and event.deleted_at is None
+        ]
+
+
     def create_event(self, data: EventCreate) -> Event:
         event = Event(
             id=self._next_event_id,
@@ -46,7 +58,6 @@ class Storage:
         return self._events.get(event_id)
 
     def list_events(self, offset: int = 0, limit: int = 50) -> list[Event]:
-        # NOTE: returns events in insertion order
         active_events = [
             e
             for e in self._events.values()

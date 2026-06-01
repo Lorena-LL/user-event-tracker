@@ -29,6 +29,14 @@ def get_user(user_id: int) -> User:
     return user
 
 
+@app.get("/users/{user_id}/events", response_model=list[Event])
+def get_user_events(user_id: int) -> list[Event]:
+    events = storage.get_events_by_user(user_id)
+    if events is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return events
+
+
 @app.post("/events", response_model=Event, status_code=201)
 def create_event(data: EventCreate) -> Event:
     user = storage.get_user(data.user_id)

@@ -22,6 +22,7 @@ class User(BaseModel):
     email: str
     name: str
     created_at: datetime = Field(default_factory=_now)
+    deleted_at: Optional[datetime] = None
 
 
 class EventCreate(BaseModel):
